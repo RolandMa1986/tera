@@ -539,6 +539,12 @@ fn parse_variable_tag(pair: Pair<Rule>) -> TeraResult<Node> {
             _ => unreachable!("unexpected {:?} rule in parse_variable_tag", p.as_rule()),
         }
     }
+    // 给每个变量设置一个默认 fliter
+    if let Some(expr) = expr.as_mut() {
+        if expr.filters.is_empty() {
+            expr.filters.push(FunctionCall { name: "Value".to_string(), args:  HashMap::new() })
+        }
+    }
     Ok(Node::VariableBlock(ws, expr.unwrap()))
 }
 
@@ -898,6 +904,11 @@ fn parse_forloop(pair: Pair<Rule>) -> TeraResult<Node> {
             }
             _ => unreachable!("unexpected {:?} rule in parse_forloop", p.as_rule()),
         };
+    }
+
+    // 给每个循环迭代的变量加一个 Iter迭代器处理
+    if let Some(container) = container.as_mut() {
+        container.filters.push(FunctionCall { name: "Iter".to_string(), args:  HashMap::new() })
     }
 
     Ok(Node::Forloop(
